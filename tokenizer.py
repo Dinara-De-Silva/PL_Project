@@ -62,5 +62,5 @@ code="""
 //its a comment//
 Print((fn f. f 2) (fn x. x eq 1 -> 1 | x+2))
 """
-for t in tokenizer(code):
-    print(t.get_type(), t.get_value())
+# for t in tokenizer(code):
+#     print(t.get_type(), t.get_value())
