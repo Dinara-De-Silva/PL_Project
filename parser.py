@@ -593,6 +593,32 @@ class parser:
 # #meka waradiyt enne, comma ekk enawa, Vl eke awla
 # code="let add ( x,y) = x+y in print ( add (3,4))"   # meka hari
 # code = " let c=3 within f x=x+c in print ( f 3 )"
+# code="let rec r s = s eq '' '' -> '' '' | conc (r (stern s)) (stem s) within p s = not isstring s -> ''error'' | s eq r s in print (p ''1234'' , p ''abcba'' )"
+# code="let add x y = x+y in print (2 @ add 3 @ add 4)"
+code="""
+let rec rev s =
+    s eq '''' -> ''''
+    | (rev (stern s)) @ conc (stem s)
+within 
+    pairs (s1,s2) = 
+        not (isstring s1 & isstring s2)
+        -> '' both args not strings''
+        | p (rev s1 , rev s2 )
+        where rec p (s1,s2)=
+        s1 eq '''' & s2 eq ''''
+        ->nil
+        |(stern s1 eq '''' & stern s2 ne '''') or 
+        (stern s1 ne '''' & stern s2 eq '''')
+        -> ''unequal length strings''
+        |(p (stern s1, stern s2)
+        aug ((stem s1) @ conc (stem s2)))
+in print (pairs (''abc'', ''def''))
+"""
+code="""
+let Sum(A) = Psum (A,Order A ) 
+where rec Psum (T,N) = N eq 0 -> 0 
+| Psum(T,N-1)+T N 
+in Print ( Sum (1,2,3,4,5) ) """
 list=tokenizer(code)
 for t in list:
     print(t.get_type(),t.get_value())
