@@ -130,6 +130,7 @@ class parser:
             # do error handling
             return None
         
+# Expressions =====================================================================================        
     #  E	->’let’ D ’in’ E 	=> ’let’
 	#       -> ’fn’ Vb+ ’.’ E 	=> ’lambda’
 	#       -> Ew;  
@@ -182,7 +183,7 @@ class parser:
             self.ast.append(Node(NodeType.WHERE,'where',2))  
         print('going out from Ew block')
 
-
+# Tuple Expressions =====================================================================================  
     #T  ->Ta (’,’ Ta )+     => ’tau’
     #   ->Ta
     def T(self):
@@ -225,6 +226,7 @@ class parser:
             self.Tc()
             self.ast.append(Node(NodeType.ARROW,'->',3))
 
+# Boolean Expressions =====================================================================================  
 #   B   -> B ’or’ Bt       => ’or’
 #       -> Bt
 #convert as follow
@@ -289,7 +291,7 @@ class parser:
             elif token=='ne':
                 self.ast.append(Node(NodeType.NE,'ne',2))
 
-# ================================================Arithmetic Expressions=======================
+# Arithmetic Expressions =====================================================================================  
 
 # A ->   A  ’+’ At      => ’+’
 #   ->   A  ’-’ At      => ’-’
@@ -595,30 +597,43 @@ class parser:
 # code = " let c=3 within f x=x+c in print ( f 3 )"
 # code="let rec r s = s eq '' '' -> '' '' | conc (r (stern s)) (stem s) within p s = not isstring s -> ''error'' | s eq r s in print (p ''1234'' , p ''abcba'' )"
 # code="let add x y = x+y in print (2 @ add 3 @ add 4)"
-code="""
-let rec rev s =
-    s eq '''' -> ''''
-    | (rev (stern s)) @ conc (stem s)
-within 
-    pairs (s1,s2) = 
-        not (isstring s1 & isstring s2)
-        -> '' both args not strings''
-        | p (rev s1 , rev s2 )
-        where rec p (s1,s2)=
-        s1 eq '''' & s2 eq ''''
-        ->nil
-        |(stern s1 eq '''' & stern s2 ne '''') or 
-        (stern s1 ne '''' & stern s2 eq '''')
-        -> ''unequal length strings''
-        |(p (stern s1, stern s2)
-        aug ((stem s1) @ conc (stem s2)))
-in print (pairs (''abc'', ''def''))
-"""
-code="""
-let Sum(A) = Psum (A,Order A ) 
-where rec Psum (T,N) = N eq 0 -> 0 
-| Psum(T,N-1)+T N 
-in Print ( Sum (1,2,3,4,5) ) """
+
+# code="""
+# let rec rev s =
+#     s eq '''' -> ''''
+#     | (rev (stern s)) @ conc (stem s)
+# within 
+#     pairs (s1,s2) = 
+#         not (isstring s1 & isstring s2)
+#         -> '' both args not strings''
+#         | p (rev s1 , rev s2 )
+#         where rec p (s1,s2)=
+#         s1 eq '''' & s2 eq ''''
+#         ->nil
+#         |(stern s1 eq '''' & stern s2 ne '''') or 
+#         (stern s1 ne '''' & stern s2 eq '''')
+#         -> ''unequal length strings''
+#         |(p (stern s1, stern s2)
+#         aug ((stem s1) @ conc (stem s2)))
+# in print (pairs (''abc'', ''def''))
+# """
+
+# code="""
+# let Sum(A) = Psum (A,Order A ) 
+# where rec Psum (T,N) = N eq 0 -> 0 
+# | Psum(T,N-1)+T N 
+# in Print ( Sum (1,2,3,4,5) ) """
+
+# code="""
+# let rec f n = n eq 1 -> 0| n eq 2 -> 1 |f (n-1) + f (n-2) in
+# let rec fib n=n eq 0 -> nil | (fib(n-1) aug f(n)) in
+# print (fib 10)
+# """
+code="""let f x v = x aug v
+and (x,y=1,1 within p (r,s) = s eq 1 -> r+x | r+y)
+in 
+f nil (p (1,2))"""
+
 list=tokenizer(code)
 for t in list:
     print(t.get_type(),t.get_value())
