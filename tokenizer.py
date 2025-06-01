@@ -26,8 +26,8 @@ token_types = {
     KEYWORD: r'\b(let|in|fn|where|aug|or|not|gr|ge|ls|le|eq|ne|true|false|nil|dummy|within|and|rec)\b',
     IDENTIFIER: r'[a-zA-Z][a-zA-Z0-9_]*',
     INTEGER: r'\d+',
+    STRING: r"''(?:\\t|\\n|\\\\|\\'|\\\"|[();, a-zA-Z0-9+\-*/<>&.@/:=˜|$!#%ˆ_\[\]{}\"`?])*''",
     OPERATOR: r'[+\-*<>&.@/:=~|$!#%^_\[\]{}"\'?]+',
-    STRING: r"'''(?:\\t|\\n|\\\\|\\'|\\\"|[();, a-zA-Z0-9+\-*/<>&.@/:=˜|$!#%ˆ_\[\]{}\"`?])*'''",
     SPACES: r'\s+',
     PUNCTUATION: r'[();,]'
 }
@@ -58,9 +58,12 @@ def tokenizer(code):
 
     return tokens
 
-code="""
-//its a comment//
-Print((fn f. f 2) (fn x. x eq 1 -> 1 | x+2))
-"""
+# =============testing=====================
+
+# code="""
+# //its a comment//
+# Print((fn f. f 2) (fn x. x eq 1 -> 1 | x+2))
+# '' sanuji perera''
+# """
 # for t in tokenizer(code):
 #     print(t.get_type(), t.get_value())

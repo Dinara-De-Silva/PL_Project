@@ -69,7 +69,51 @@ class parser:
         self.token_list = token_list
         self.string_ast=[]
         self.ast = []
-    
+    #==========================printing part========================
+    def convert_ast_to_string_ast(self):
+        dots = ""
+        stack = []
+
+        while self.ast:
+            if not stack:
+                if self.ast[-1].children_count == 0:
+                    self.add_strings(dots, self.ast.pop())
+                else:
+                    node = self.ast.pop()
+                    stack.append(node)
+            else:
+                if self.ast[-1].children_count > 0:
+                    node = self.ast.pop()
+                    stack.append(node)
+                    dots += "."
+                else:
+                    stack.append(self.ast.pop())
+                    dots += "."
+                    while stack[-1].children_count == 0:
+                        self.add_strings(dots, stack.pop())
+                        if not stack:
+                            break
+                        dots = dots[:-1]
+                        node = stack.pop()
+                        node.children_count -= 1
+                        stack.append(node)
+
+        # Reverse the list
+        self.string_ast.reverse()
+        return self.string_ast
+
+    def add_strings(self, dots, node):
+        if node.node_type in [NodeType.IDENTIFIER, NodeType.INTEGER, NodeType.STRING, NodeType.TRUE,
+                         NodeType.FALSE, NodeType.NIL, NodeType.DUMMY]:
+            self.string_ast.append(dots + "<" + node.node_type.name.upper() + ":" + node.value + ">")
+        elif node.node_type == NodeType.FCN_FORM:
+            self.string_ast.append(dots + "function_form")
+        else:
+            self.string_ast.append(dots + node.value)
+            # ===============over==============================
+            # 
+            # 
+            #  
     def print_ast(self):
         for node in self.ast:
             print(f"Node Type: {node.node_type}, Value: {node.value}, Children Count: {node.children_count}")
@@ -86,6 +130,7 @@ class parser:
             # do error handling
             return None
         
+# Expressions =====================================================================================        
     #  E	->’let’ D ’in’ E 	=> ’let’
 	#       -> ’fn’ Vb+ ’.’ E 	=> ’lambda’
 	#       -> Ew;  
@@ -138,7 +183,7 @@ class parser:
             self.ast.append(Node(NodeType.WHERE,'where',2))  
         print('going out from Ew block')
 
-
+# Tuple Expressions =====================================================================================  
     #T  ->Ta (’,’ Ta )+     => ’tau’
     #   ->Ta
     def T(self):
@@ -181,6 +226,7 @@ class parser:
             self.Tc()
             self.ast.append(Node(NodeType.ARROW,'->',3))
 
+# Boolean Expressions =====================================================================================  
 #   B   -> B ’or’ Bt       => ’or’
 #       -> Bt
 #convert as follow
@@ -245,7 +291,7 @@ class parser:
             elif token=='ne':
                 self.ast.append(Node(NodeType.NE,'ne',2))
 
-# ================================================Arithmetic Expressions=======================
+# Arithmetic Expressions =====================================================================================  
 
 # A ->   A  ’+’ At      => ’+’
 #   ->   A  ’-’ At      => ’-’
@@ -262,7 +308,7 @@ class parser:
             self.token_list.pop(0)
             print('inside A block popping -')
             self.At()
-            self.ast.append(Node(NodeType.NEG,'neh',1))
+            self.ast.append(Node(NodeType.NEG,'neg',1))
         else:
             self.At()
         while self.token_list[0].get_value() in ['+','-']:
@@ -421,22 +467,49 @@ class parser:
 # Db    -> Vl ’=’ E                     => ’=’
 #       -> ’<IDENTIFIER>’ Vb+ ’=’ E     => 'fcn_form'
 #       -> ’(’ D ’)’ 
+# --------------------------------------------------------
+# Vl -> '<IDENTIFIER>' list ','    => ',' ?  
+# --------------------------------------------------------
+# Vb    -> ’<IDENTIFIER>’
+#       -> ’(’ Vl ’)’
+#       -> ’(’ ’)’
+# --------------------------------------------------------
+# Db    -> '<IDENTIFIER>' list ','  ’=’ E                     => ’=’
+#       -> ’<IDENTIFIER>’ [’<IDENTIFIER>’ |’(’ '<IDENTIFIER>' list ',' ’)’ | ’(’ ’)’ ]+ ’=’ E     => 'fcn_form'
+#       -> ’(’ D ’)’ 
+
+
+
     def Db(self):
         print('inside Db block')
         # Db -> ( D )
         if self.token_list[0].get_value()=='('and self.token_list[0].get_type()=='(':
-            self.token_list.pop(0)
+            self.token_list.pop(0) #pop (
             self.D()
             if self.token_list[0].get_value()!=')':
                 print('expected a closing bracket, but got',self.token_list[0].get_value())
                 return
-            self.token_list.pop(0)
-        
+            self.token_list.pop(0) #pop )
+# Db    -> Vl ’=’ E                     => ’=’
+#       -> ’<IDENTIFIER>’ Vb+ ’=’ E     => 'fcn_form'
+
+# --------------------------------------------------------
+# Db    -> '<IDENTIFIER>' list ','  ’=’ E                     => ’=’
+#       -> ’<IDENTIFIER>’ (’<IDENTIFIER>’ |’(’ Vl ’)’ | ’(’ ’)’ )+ ’=’ E     => 'fcn_form'
+#       -> ’<IDENTIFIER>’ [’<IDENTIFIER>’ |’(’ '<IDENTIFIER>' list ',' ’)’ | ’(’ ’)’ ]+ ’=’ E     => 'fcn_form'
         elif self.token_list[0].get_type()==IDENTIFIER:
             # Db -> <IDENTIFIER> Vb+ = E
-            if self.token_list[1].get_type()==IDENTIFIER or self.token_list[1].get_value()=='(':
-                self.ast.append(Node(NodeType.IDENTIFIER,self.token_list[0].get_value(),0))
-                self.token_list.pop(0)
+            if self.token_list[1].get_value()=='='or self.token_list[1].get_value()==',':
+                self.Vl()
+                if self.token_list[0].get_value()!='=':
+                    print('error inside Db block, expected = but got',self.token_list[0].get_value())
+                    return
+                self.token_list.pop(0) # pop =
+                self.E()
+                self.ast.append(Node(NodeType.EQUAL,'=',2))
+            else:
+                self.ast.append(Node(NodeType.IDENTIFIER,self.token_list[0].get_value(),0)) 
+                self.token_list.pop(0) # pop identifier
                 n=0
                 while self.token_list[0].get_type()==IDENTIFIER or self.token_list[0].get_value()=='(':
                     n+=1
@@ -447,15 +520,31 @@ class parser:
                 self.token_list.pop(0) # pop =
                 self.E()
                 self.ast.append(Node(NodeType.FCN_FORM,'fcn_form',n+2))
+        else:
+            print('error inside Db')
+
+            # if self.token_list[1].get_type()==IDENTIFIER or self.token_list[1].get_value()=='(':
+            #     self.ast.append(Node(NodeType.IDENTIFIER,self.token_list[0].get_value(),0)) 
+            #     self.token_list.pop(0) # pop identifier
+            #     n=0
+            #     while self.token_list[0].get_type()==IDENTIFIER or self.token_list[0].get_value()=='(':
+            #         n+=1
+            #         self.Vb()
+            #     if self.token_list[0].get_value()!='=':
+            #         print('error inside Db block, expected = but got',self.token_list[0].get_value())
+            #         return
+            #     self.token_list.pop(0) # pop =
+            #     self.E()
+            #     self.ast.append(Node(NodeType.FCN_FORM,'fcn_form',n+2))
             # Db -> Vl = E
-            else:
-                self.Vl()
-                if self.token_list[0].get_value()!='=':
-                    print('error inside Db block, expected = but got',self.token_list[0].get_value())
-                    return
-                self.token_list.pop(0)
-                self.E()
-                self.ast.append(Node(NodeType.EQUAL,'=',2))
+            # else:
+            #     self.Vl()
+            #     if self.token_list[0].get_value()!='=':
+            #         print('error inside Db block, expected = but got',self.token_list[0].get_value())
+            #         return
+            #     self.token_list.pop(0)
+            #     self.E()
+            #     self.ast.append(Node(NodeType.EQUAL,'=',2))
 
 # Vb    -> ’<IDENTIFIER>’
 #       -> ’(’ Vl ’)’
@@ -483,20 +572,68 @@ class parser:
     def Vl(self):
         print('inside Vl block')
         self.ast.append(Node(NodeType.IDENTIFIER,self.token_list[0].get_value(),0))
+        print('popping identifier',self.token_list[0].get_value())
         self.token_list.pop(0) 
         n=1
         while self.token_list[0].get_type()==',' and self.token_list[0].get_value()==',':
+            print('inside Vl  eke while block popping ,',self.token_list[0].get_value())
             self.token_list.pop(0)     # pop ,
             if self.token_list[0].get_type()!=IDENTIFIER:
                 print('error inside Vl block, expected an identifier but got',self.token_list[0].get_value())
                 return
             self.ast.append(Node(NodeType.IDENTIFIER,self.token_list[0].get_value(),0))
+            print('inside vl while popping identifier',self.token_list[0].get_value())
             self.token_list.pop(0)
-        self.ast.append(Node(NodeType.COMMA,',',n))
+            n+=1
+        if n>1:
+            self.ast.append(Node(NodeType.COMMA,',',n))
+        print('comma enne methanin=================')
 
 
 # =========================testing part========================
-code="(fn x y. print (x + Y)) 5 7"
+# code="(print (x, sqr x, x* sqr x, sqr x ** 2) where sqr x = x**2) where x=3" 
+# #meka waradiyt enne, comma ekk enawa, Vl eke awla
+# code="let add ( x,y) = x+y in print ( add (3,4))"   # meka hari
+# code = " let c=3 within f x=x+c in print ( f 3 )"
+# code="let rec r s = s eq '' '' -> '' '' | conc (r (stern s)) (stem s) within p s = not isstring s -> ''error'' | s eq r s in print (p ''1234'' , p ''abcba'' )"
+# code="let add x y = x+y in print (2 @ add 3 @ add 4)"
+
+# code="""
+# let rec rev s =
+#     s eq '''' -> ''''
+#     | (rev (stern s)) @ conc (stem s)
+# within 
+#     pairs (s1,s2) = 
+#         not (isstring s1 & isstring s2)
+#         -> '' both args not strings''
+#         | p (rev s1 , rev s2 )
+#         where rec p (s1,s2)=
+#         s1 eq '''' & s2 eq ''''
+#         ->nil
+#         |(stern s1 eq '''' & stern s2 ne '''') or 
+#         (stern s1 ne '''' & stern s2 eq '''')
+#         -> ''unequal length strings''
+#         |(p (stern s1, stern s2)
+#         aug ((stem s1) @ conc (stem s2)))
+# in print (pairs (''abc'', ''def''))
+# """
+
+# code="""
+# let Sum(A) = Psum (A,Order A ) 
+# where rec Psum (T,N) = N eq 0 -> 0 
+# | Psum(T,N-1)+T N 
+# in Print ( Sum (1,2,3,4,5) ) """
+
+# code="""
+# let rec f n = n eq 1 -> 0| n eq 2 -> 1 |f (n-1) + f (n-2) in
+# let rec fib n=n eq 0 -> nil | (fib(n-1) aug f(n)) in
+# print (fib 10)
+# """
+code="""let f x v = x aug v
+and (x,y=1,1 within p (r,s) = s eq 1 -> r+x | r+y)
+in 
+f nil (p (1,2))"""
+
 list=tokenizer(code)
 for t in list:
     print(t.get_type(),t.get_value())
@@ -505,5 +642,9 @@ parser=parser(list)
 parser.parse()
 print('=============================')
 parser.print_ast()
+print('=============================')
+ast=parser.convert_ast_to_string_ast()
+for t in ast:
+    print(t)
     # need functions for build ast
 
