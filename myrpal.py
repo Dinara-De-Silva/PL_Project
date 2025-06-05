@@ -3,7 +3,8 @@ from Parser.parser import Parser
 from Lexer.tokenizer import tokenizer
 from Standerizer.ast_builder import ASTBuilder
 from CSEM.csemachine import CSEMachine
-from CSEM.csemachinefactory import CSEMachineFactory
+from CSEM.control_structures import ControlStructures
+import traceback
 
 def main():
     parser = argparse.ArgumentParser(description='Process some RPAL files.')
@@ -42,15 +43,19 @@ def main():
             return
         
         # Interpret the ST using CSE Machine
-        cse_machine_factory = CSEMachineFactory()
+        cse_machine_factory = ControlStructures()
         cse_machine = cse_machine_factory.create_cse_machine(ast)
         
         # Print the final output
+        cse_machine.write_stack_to_file("stack.txt")
         print("Output of the above program is:")
-        print(cse_machine.get_result())
+        print(cse_machine.get_result().replace("\\n", "\n"))
+        
 
     except Exception as e:
         print(e)
+        traceback.print_exc()
+
 
 if __name__ == "__main__":
     main()

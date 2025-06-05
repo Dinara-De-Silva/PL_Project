@@ -13,10 +13,31 @@ class CSEMachine:
         current_environment = self.environment[0]
         j = 1
         while self.control:
-            
-            # change below paths to your own paths to see how the control and stack are changing
-            # self.write_control_to_file("C:\\Users\\samar\\Desktop\\PL_Project\\CSE Evaluation\\Control.txt")
-            # self.write_stack_to_file("C:\\Users\\samar\\Desktop\\PL_Project\\CSE Evaluation\\Stack.txt")
+            # print("-------- Step --------")
+            # print("Control: ", end="")
+            # for symbol in self.control:
+            #     print(symbol.get_data(), end="")
+            #     if isinstance(symbol, (Lambda, Delta, E, Eta)):
+            #         print(symbol.get_index(), end="")
+            #     print(",", end="")
+            # print()
+
+            # print("Stack: ", end="")
+            # for symbol in self.stack:
+            #     print(symbol.get_data(), end="")
+            #     if isinstance(symbol, (Lambda, Delta, E, Eta)):
+            #         print(symbol.get_index(), end="")
+            #     print(",", end="")
+            # print()
+
+            # print("Environment: ", end="")
+            # for env in self.environment:
+            #     print(f"e{env.get_index()}(", end="")
+            #     for key, val in env.values.items():
+            #         print(f"{key.get_data()}={val.get_data()}", end=",")
+            #     print(")", end=" ")
+            # print("\n")
+
             
             current_symbol = self.control.pop()
             if isinstance(current_symbol, Id):
@@ -78,19 +99,22 @@ class CSEMachine:
                     elif next_symbol.get_data() == "Stem":
                         # implement Stem function
                         s = self.stack.pop(0)
-                        s.set_data(s.get_data()[0])
-                        self.stack.insert(0, s)
+                        x = Str(s.get_data()[0])
+                        self.stack.insert(0,x)
                     elif next_symbol.get_data() == "Stern":
                         # implement Stern function
                         s = self.stack.pop(0)
-                        s.set_data(s.get_data()[1:])
-                        self.stack.insert(0, s)
+                        y = Str(s.get_data()[1:])
+                        # s.set_data(s.get_data()[1:])
+                        self.stack.insert(0, y)
                     elif next_symbol.get_data() == "Conc":
                         # implement Conc function
                         s1 = self.stack.pop(0)
                         s2 = self.stack.pop(0)
-                        s1.set_data(s1.get_data() + s2.get_data())
-                        self.stack.insert(0, s1)
+                        self.control.pop()
+                        z = Str(s1.get_data() + s2.get_data())
+                        
+                        self.stack.insert(0, z)
                     elif next_symbol.get_data() == "Order":
                         # implement Order function
                         tup = self.stack.pop(0)
