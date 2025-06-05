@@ -13,32 +13,6 @@ class CSEMachine:
         current_environment = self.environment[0]
         j = 1
         while self.control:
-            # print("-------- Step --------")
-            # print("Control: ", end="")
-            # for symbol in self.control:
-            #     print(symbol.get_data(), end="")
-            #     if isinstance(symbol, (Lambda, Delta, E, Eta)):
-            #         print(symbol.get_index(), end="")
-            #     print(",", end="")
-            # print()
-
-            # print("Stack: ", end="")
-            # for symbol in self.stack:
-            #     print(symbol.get_data(), end="")
-            #     if isinstance(symbol, (Lambda, Delta, E, Eta)):
-            #         print(symbol.get_index(), end="")
-            #     print(",", end="")
-            # print()
-
-            # print("Environment: ", end="")
-            # for env in self.environment:
-            #     print(f"e{env.get_index()}(", end="")
-            #     for key, val in env.values.items():
-            #         print(f"{key.get_data()}={val.get_data()}", end=",")
-            #     print(")", end=" ")
-            # print("\n")
-
-            
             current_symbol = self.control.pop()
             if isinstance(current_symbol, Id):
                 self.stack.insert(0, current_environment.lookup(current_symbol))
@@ -222,60 +196,7 @@ class CSEMachine:
                 self.control.extend(current_symbol.symbols)
             else:
                 self.stack.insert(0, current_symbol)
-
-    
-
-    # def print_stack(self):
-    #     print("Stack: ", end="")
-    #     for symbol in self.stack:
-    #         print(symbol.get_data(), end="")
-    #         if isinstance(symbol, (Lambda, Delta, E, Eta)):
-    #             print(symbol.get_index(), end="")
-    #         print(",", end="")
-    #     print()
-    
-    # def print_control(self):
-    #     print("Control: ", end="")
-    #     for symbol in self.control:
-    #         print(symbol.get_data(), end="")
-    #         if isinstance(symbol, (Lambda, Delta, E, Eta)):
-    #             print(symbol.get_index(), end="")
-    #         print(",", end="")
-    #     print()
-    
-    def write_stack_to_file(self, file_path):
-        with open(file_path, 'a') as file:
-            for symbol in self.stack:
-                file.write(symbol.get_data())
-                if isinstance(symbol, (Lambda, Delta, E, Eta)):
-                    file.write(str(symbol.get_index()))
-                file.write(",")
-            file.write("\n")
-
-    def write_control_to_file(self, file_path):
-        with open(file_path, 'a') as file:
-            for symbol in self.control:
-                file.write(symbol.get_data())
-                if isinstance(symbol, (Lambda, Delta, E, Eta)):
-                    file.write(str(symbol.get_index()))
-                file.write(",")
-            file.write("\n")
-    
-    def clear_file(file_path):
-        open(file_path, 'w').close()
-    
-
-
-
-    def print_environment(self):
-        # Print the environment symbols
-        for symbol in self.environment:
-            print(f"e{symbol.get_index()} --> ", end="")
-            if symbol.get_index() != 0:
-                print(f"e{symbol.get_parent().get_index()}")
-            else:
-                print()
-                
+               
     def covert_string_to_bool(self, data):
         if data == "true":
             return True
@@ -338,7 +259,7 @@ class CSEMachine:
         elif rator.data == "le":
             val1 = int(rand1.data)
             val2 = int(rand2.data)
-            return Bool((val1 <= val2))
+            return Bool(str(val1 <= val2).lower())
         elif rator.data == "gr":
             val1 = int(rand1.data)
             val2 = int(rand2.data)

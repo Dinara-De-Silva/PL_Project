@@ -47,7 +47,6 @@ def main():
         cse_machine = cse_machine_factory.create_cse_machine(ast)
         
         # Print the final output
-        cse_machine.write_stack_to_file("stack.txt")
         print("Output of the above program is:")
         print(cse_machine.get_result().replace("\\n", "\n"))
         

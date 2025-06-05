@@ -85,38 +85,9 @@ class ControlStructures:
 
     def create_environment(self):
         return [self.e0]
-    
-
-    # def print_symbol(self,symbol, indent=0):
-    #     indent_str = '  ' * indent
-    #     # Print basic data
-    #     print(f"{indent_str}{symbol.__class__.__name__}: {symbol.get_data()}")
-
-    #     # Print details for specific symbol types
-    #     if isinstance(symbol, Delta):
-    #         print(f"{indent_str}  Index: {symbol.get_index()}")
-    #         print(f"{indent_str}  Symbols:")
-    #         for s in symbol.symbols:
-    #             self.print_symbol(s, indent + 2)
-    #     elif isinstance(symbol, Lambda):
-    #         print(f"{indent_str}  Index: {symbol.get_index()}")
-    #         print(f"{indent_str}  Identifiers: {[id.get_data() for id in symbol.identifiers]}")
-    #         print(f"{indent_str}  Delta:")
-    #         self.print_symbol(symbol.get_delta(), indent + 2)
-    #     elif isinstance(symbol, E):
-    #         print(f"{indent_str}  Index: {symbol.get_index()}")
-    #     elif isinstance(symbol, Id):
-    #         print(f"{indent_str}  (Identifier)")
-    #     elif isinstance(symbol, Bop):
-    #         print(f"{indent_str}  (Binary Operator)")
-    # # Add more elifs for other symbol types if needed
-    # def print_control(self, control):
-    #     for symbol in control:
-    #         self.print_symbol(symbol)
 
     def create_cse_machine(self, ast):
         control = self.create_control(ast)
-        # self.print_control(control)
         stack = self.create_stack()
         environment = self.create_environment()
         return CSEMachine(control, stack, environment)
