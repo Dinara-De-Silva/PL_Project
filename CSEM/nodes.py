@@ -1,6 +1,4 @@
 class Symbol:
-    """Base class for all symbols in the CSE Machine."""
-    
     def __init__(self, data):
         self.data = data
 
@@ -9,82 +7,67 @@ class Symbol:
 
     def get_data(self):
         return self.data
-
-class Rand(Symbol):
-    """Base class for operand symbols."""
     
+class Rand(Symbol):
     def __init__(self, data):
         super().__init__(data)
 
+    def get_data(self):
+        return super().get_data()
+
 class Rator(Symbol):
-    """Base class for operator symbols."""
-    
     def __init__(self, data):
         super().__init__(data)
 
 class B(Symbol):
-    """Beta node for conditional expressions."""
-    
     def __init__(self):
         super().__init__("b")
         self.symbols = []
 
 class Beta(Symbol):
-    """Beta symbol for conditional branching."""
-    
     def __init__(self):
         super().__init__("beta")
-
+        
 class Bool(Rand):
-    """Boolean value symbol."""
-    
     def __init__(self, data):
         super().__init__(data)
 
 class Bop(Rator):
-    """Binary operator symbol."""
-    
     def __init__(self, data):
         super().__init__(data)
-
+        
 class Delta(Symbol):
-    """Delta symbol for control structures."""
-    
-    def __init__(self, index):
+    def __init__(self, i):
         super().__init__("delta")
-        self.index = index
+        self.index = i
         self.symbols = []
 
-    def set_index(self, index):
-        self.index = index
+    def set_index(self, i):
+        self.index = i
 
     def get_index(self):
         return self.index
 
 class Dummy(Rand):
-    """Dummy symbol for placeholder values."""
-    
     def __init__(self):
         super().__init__("dummy")
 
 class E(Symbol):
-    """Environment symbol for variable bindings."""
-    
-    def __init__(self, index):
+    def __init__(self, i):
         super().__init__("e")
-        self.index = index
+        self.index = i
         self.parent = None
         self.is_removed = False
         self.values = {}
 
-    def set_parent(self, parent):
-        self.parent = parent
+    def set_parent(self, e):
+        self.parent = e
 
     def get_parent(self):
         return self.parent
 
-    def set_index(self, index):
-        self.index = index
+    def set_index(self, i):
+        self.index = i
 
     def get_index(self):
         return self.index
@@ -95,37 +78,35 @@ class E(Symbol):
     def get_is_removed(self):
         return self.is_removed
 
-    def lookup(self, identifier):
-        """Look up an identifier in the environment or its parents."""
+    def lookup(self, id):
         for key in self.values:
-            if key.get_data() == identifier.get_data():
+            if key.get_data() == id.get_data():
                 return self.values[key]
-        return self.parent.lookup(identifier) if self.parent else Symbol(identifier.get_data())
+        if self.parent is not None:
+            return self.parent.lookup(id)
+        else:
+            return Symbol(id.get_data())
 
 class Err(Symbol):
-    """Error symbol for invalid operations."""
-    
     def __init__(self):
         super().__init__("")
 
 class Eta(Symbol):
-    """Eta symbol for recursive function handling."""
-    
     def __init__(self):
         super().__init__("eta")
         self.index = None
         self.environment = None
         self.identifier = None
-        self.lambda_expr = None
+        self.lambda_ = None
 
-    def set_index(self, index):
-        self.index = index
+    def set_index(self, i):
+        self.index = i
 
     def get_index(self):
         return self.index
 
-    def set_environment(self, environment):
-        self.environment = environment
+    def set_environment(self, e):
+        self.environment = e
 
     def get_environment(self):
         return self.environment
@@ -133,42 +114,37 @@ class Eta(Symbol):
     def set_identifier(self, identifier):
         self.identifier = identifier
 
-    def set_lambda(self, lambda_expr):
-        self.lambda_expr = lambda_expr
+    def set_lambda(self, lambda_):
+        self.lambda_ = lambda_
 
     def get_lambda(self):
-        return self.lambda_expr
+        return self.lambda_
 
 class Gamma(Symbol):
-    """Gamma symbol for function application."""
-    
     def __init__(self):
         super().__init__("gamma")
 
 class Id(Rand):
-    """Identifier symbol."""
-    
     def __init__(self, data):
         super().__init__(data)
+    
+    def get_data(self):
+        return super().get_data()
 
 class Int(Rand):
-    """Integer value symbol."""
-    
     def __init__(self, data):
         super().__init__(data)
 
 class Lambda(Symbol):
-    """Lambda expression symbol."""
-    
-    def __init__(self, index):
+    def __init__(self, i):
         super().__init__("lambda")
-        self.index = index
+        self.index = i
         self.environment = None
         self.identifiers = []
         self.delta = None
 
-    def set_environment(self, environment):
-        self.environment = environment
+    def set_environment(self, n):
+        self.environment = n
 
     def get_environment(self):
         return self.environment
@@ -178,22 +154,18 @@ class Lambda(Symbol):
 
     def get_delta(self):
         return self.delta
-
     def get_index(self):
         return self.index
 
 class Str(Rand):
-    """String value symbol."""
-    
     def __init__(self, data):
         super().__init__(data)
 
+
 class Tau(Symbol):
-    """Tau symbol for tuple creation."""
-    
     def __init__(self, n):
         super().__init__("tau")
-        self.n = n
+        self.set_n(n)
 
     def set_n(self, n):
         self.n = n
@@ -202,20 +174,18 @@ class Tau(Symbol):
         return self.n
 
 class Tup(Rand):
-    """Tuple symbol for grouped values."""
-    
     def __init__(self):
         super().__init__("tup")
         self.symbols = []
 
+
 class Uop(Rator):
-    """Unary operator symbol."""
-    
     def __init__(self, data):
         super().__init__(data)
 
 class Ystar(Symbol):
-    """Ystar symbol for recursion."""
-    
     def __init__(self):
         super().__init__("<Y*>")
+
+
+
