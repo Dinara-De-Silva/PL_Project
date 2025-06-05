@@ -43,11 +43,11 @@ def main():
         
         # Interpret the ST using CSE Machine
         cse_machine_factory = CSEMachineFactory()
-        cse_machine = cse_machine_factory.get_cse_machine(ast)
+        cse_machine = cse_machine_factory.create_cse_machine(ast)
         
         # Print the final output
         print("Output of the above program is:")
-        print(cse_machine.get_answer())
+        print(cse_machine.get_result())
 
     except Exception as e:
         print(e)
