@@ -26,7 +26,7 @@ token_types = {
     KEYWORD: r'\b(let|in|fn|where|aug|or|not|gr|ge|ls|le|eq|ne|true|false|nil|dummy|within|and|rec)\b',
     IDENTIFIER: r'[a-zA-Z][a-zA-Z0-9_]*',
     INTEGER: r'\d+',
-    STRING: r"''(?:\\t|\\n|\\\\|\\'|\\\"|[();, a-zA-Z0-9+\-*/<>&.@/:=˜|$!#%ˆ_\[\]{}\"`?])*''",
+    STRING: r"'(?:\\t|\\n|\\\\|\\'|\\\"|[();, a-zA-Z0-9+\-*/<>&.@/:=˜|$!#%ˆ_\[\]{}\"`?])*'",
     OPERATOR: r'[+\-*<>&.@/:=~|$!#%^_\[\]{}"\'?]+',
     SPACES: r'\s+',
     PUNCTUATION: r'[();,]'

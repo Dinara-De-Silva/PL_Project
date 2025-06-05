@@ -1,0 +1,56 @@
+import argparse
+from Parser.parser import Parser
+from Lexer.tokenizer import tokenizer
+from Standerizer.ast_builder import ASTBuilder
+from CSEM.csemachine import CSEMachine
+from CSEM.csemachinefactory import CSEMachineFactory
+
+def main():
+    parser = argparse.ArgumentParser(description='Process some RPAL files.')
+    parser.add_argument('file_name', type=str, help='The RPAL program input file')
+    parser.add_argument('-ast', action='store_true', help='Print the abstract syntax tree')
+    parser.add_argument('-sast', action='store_true', help='Print the standardized abstract syntax tree')
+
+    args = parser.parse_args()
+
+    input_file = open(args.file_name, "r")
+    input_text = input_file.read()
+    input_file.close()
+    
+    # Tokenize the input text
+    tokens = tokenizer(input_text)
+
+    try:
+        parser = Parser(tokens)
+        ast_nodes = parser.parse()
+        if ast_nodes is None:
+            return
+        
+        # Abstract Syntax Tree 
+        string_ast = parser.convert_ast_to_string_ast()
+        if args.ast:
+            for string in string_ast:
+                print(string)
+            return
+        
+        # Standardized Tree 
+        ast_factory = ASTBuilder()
+        ast = ast_factory.build_ast(string_ast)
+        ast.standardize()
+        if args.sast:
+            ast.print_st()
+            return
+        
+        # Interpret the ST using CSE Machine
+        cse_machine_factory = CSEMachineFactory()
+        cse_machine = cse_machine_factory.get_cse_machine(ast)
+        
+        # Print the final output
+        print("Output of the above program is:")
+        print(cse_machine.get_answer())
+
+    except Exception as e:
+        print(e)
+
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,5 @@
 from enum import Enum
-from tokenizer import Token, tokenizer
+from Lexer.tokenizer import Token, tokenizer
 
 
 
@@ -64,7 +64,7 @@ class Node:
         self.children_count=children_count
 
 
-class parser:
+class Parser:
     def __init__(self, token_list):
         self.token_list = token_list
         self.string_ast=[]
@@ -629,22 +629,22 @@ class parser:
 # let rec fib n=n eq 0 -> nil | (fib(n-1) aug f(n)) in
 # print (fib 10)
 # """
-code="""let f x v = x aug v
-and (x,y=1,1 within p (r,s) = s eq 1 -> r+x | r+y)
-in 
-f nil (p (1,2))"""
+# code="""let f x v = x aug v
+# and (x,y=1,1 within p (r,s) = s eq 1 -> r+x | r+y)
+# in 
+# f nil (p (1,2))"""
 
-list=tokenizer(code)
-for t in list:
-    print(t.get_type(),t.get_value())
+# list=tokenizer(code)
+# for t in list:
+#     print(t.get_type(),t.get_value())
 
-parser=parser(list)
-parser.parse()
-print('=============================')
-parser.print_ast()
-print('=============================')
-ast=parser.convert_ast_to_string_ast()
-for t in ast:
-    print(t)
-    # need functions for build ast
+# parser=parser(list)
+# parser.parse()
+# print('=============================')
+# parser.print_ast()
+# print('=============================')
+# ast=parser.convert_ast_to_string_ast()
+# for t in ast:
+#     print(t)
+#     # need functions for build ast
 
