@@ -38,7 +38,7 @@ class ASTNode:
 
     def standardize(self):
         """
-        Standardize this node while recursively standardizes all children first.
+        Standardize this node while recursively standardizing all children first.
         """
         if self.is_standardized:
             return
@@ -76,7 +76,7 @@ class ASTNode:
           /   \             /    \
          X     E           X      P 
         """
-        # Reorganize nodes according to standardization rules
+    
         expr = self.children[0].children[1]
         expr.set_parent(self)
         expr.set_depth(self.depth + 1)
@@ -93,16 +93,14 @@ class ASTNode:
     def _standardize_where(self):
         """
         Standardize WHERE node:
-              WHERE               LET
+              WHERE               GAMMA
               /   \             /     \
-             P    EQUAL   ->  EQUAL   P
+             P    EQUAL   ->  LAMBDA   E
                   /   \       /   \
-                 X     E     X     E
+                 X     E     X     P
         """
-        # Swap P and EQUAL nodes
         self.children[0], self.children[1] = self.children[1], self.children[0]
         self.set_data("let")
-        # Re-standardize as LET node
         self.standardize()
 
     def _standardize_function_form(self):
@@ -111,17 +109,15 @@ class ASTNode:
               FCN_FORM                EQUAL
               /   |   \              /    \
              P    V+   E    ->      P     +LAMBDA
-                                      /     \
-                                     V     .E
+                                          /     \
+                                          V     .E
         """
         expr = self.children[-1]
         current_lambda = NodeFactory.create_node_with_parent(
             "lambda", self.depth + 1, self, [], True)
 
-        # Insert lambda node after P
         self.children.insert(1, current_lambda)
 
-        # Process variables and create nested lambdas
         i = 2
         while self.children[i] != expr:
             var = self.children[i]
@@ -143,7 +139,7 @@ class ASTNode:
     def _standardize_lambda(self):
         """
         Standardize LAMBDA node with multiple variables:
-            LAMBDA        LAMBDA
+            LAMBDA        ++LAMBDA
              /   \   ->   /    \
             V++   E      V     .E
         """
@@ -260,8 +256,8 @@ class ASTNode:
               EQUAL     ->       X     GAMMA
              /     \                   /    \
             X       E                YSTAR  LAMBDA
-                                          /     \
-                                          X      E
+                                            /     \
+                                            X      E
         """
         x, e = self.children[0].children
         x_copy = NodeFactory.create_node_with_parent(
