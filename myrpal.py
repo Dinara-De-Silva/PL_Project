@@ -1,7 +1,7 @@
 import argparse
 from Parser.parser import Parser
 from Lexer.tokenizer import tokenizer
-from Standerizer.ast_builder import ASTBuilder
+from Standardizer.ast_builder import ASTBuilder
 from CSEM.csemachine import CSEMachine
 from CSEM.control_structures import ControlStructures
 import traceback
