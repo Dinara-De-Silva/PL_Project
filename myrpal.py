@@ -10,8 +10,7 @@ def main():
     parser = argparse.ArgumentParser(description='Process some RPAL files.')
     parser.add_argument('file_name', type=str, help='The RPAL program input file')
     parser.add_argument('-ast', action='store_true', help='Print the abstract syntax tree')
-    parser.add_argument('-sast', action='store_true', help='Print the standardized abstract syntax tree')
-
+    
     args = parser.parse_args()
 
     input_file = open(args.file_name, "r")
@@ -38,10 +37,7 @@ def main():
         ast_factory = ASTBuilder()
         ast = ast_factory.build_ast(string_ast)
         ast.standardize()
-        if args.sast:
-            ast.print_st()
-            return
-        
+       
         # Interpret the ST using CSE Machine
         cse_machine_factory = ControlStructures()
         cse_machine = cse_machine_factory.create_cse_machine(ast)
