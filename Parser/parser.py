@@ -70,7 +70,7 @@ class Parser:
         self.string_ast=[]
         self.ast = []
     #==========================printing part========================
-    def convert_ast_to_string_ast(self):
+    def print_ast(self):
         dots = ""
         stack = []
 
@@ -110,24 +110,19 @@ class Parser:
             self.string_ast.append(dots + "function_form")
         else:
             self.string_ast.append(dots + node.value)
-            # ===============over==============================
+ # ================================================================================================
             # 
             # 
             #  
-    def print_ast(self):
-        for node in self.ast:
-            print(f"Node Type: {node.node_type}, Value: {node.value}, Children Count: {node.children_count}")
 
 
     def parse(self):
         self.token_list.append(Token(END_OF_TOKENS,'EOT'))
         self.E()
         if self.token_list[0].get_type() == END_OF_TOKENS:
-            print("Parsing completed successfully.")
             return self.ast
         else:
             print("error in parsing tokens.")
-            # do error handling
             return None
         
 # Expressions =====================================================================================        
@@ -135,31 +130,24 @@ class Parser:
 	#       -> ’fn’ Vb+ ’.’ E 	=> ’lambda’
 	#       -> Ew;  
     def E(self):
-        if self.token_list: #never be emty cus EOT is added 
+        if self.token_list:
             token=self.token_list[0]
-            # print('inside E block next token is ',token.get_value())
             if token.get_type()==KEYWORD and token.get_value()=='let':
-                # print('inside let block')
-                self.token_list.pop(0) #remove let
+                self.token_list.pop(0) 
                 self.D()
                 if self.token_list[0].get_value() !='in':
                     print('error inside block E let, expected in, but got',self.token_list[0].value)
-                # else ekak onimada?
-                self.token_list.pop(0) #remove in
+                self.token_list.pop(0) 
                 self.E()
                 self.ast.append(Node(NodeType.LET,'let',2))
             elif token.get_type()==KEYWORD and token.get_value()=='fn':
-                # print('inside lambda block')
-                self.token_list.pop(0) #remove fn
+                self.token_list.pop(0) 
                 n=0
                 while self.token_list and (self.token_list[0].get_type()==IDENTIFIER or self.token_list[0].get_type()=='('):
-                    # print('inside lambda while')
                     n+=1
                     self.Vb()
                 if self.token_list[0].get_value() !='.':
                     print('error inside block E lambda, expected ., but got',self.token_list[0].value)
-                # else if needed
-                # print('popping .')
                 self.token_list.pop(0)
                 self.E()
                 self.ast.append(Node(NodeType.LAMBDA,'lambda',n+1))
@@ -187,7 +175,6 @@ class Parser:
     #T  ->Ta (’,’ Ta )+     => ’tau’
     #   ->Ta
     def T(self):
-        # print('inside T block')
         self.Ta()
         n=1
         while self.token_list[0].get_type() == COMMA:
@@ -196,7 +183,6 @@ class Parser:
             n+=1
         if n>1:
             self.ast.append(Node(NodeType.TAU,'tau',n))
-        # print('going out from T block')
 
     #Ta     ->Ta ’aug’ Tc       => ’aug’
     #       ->Tc
@@ -232,7 +218,6 @@ class Parser:
 #convert as follow
 #   B   -> Bt ('or' Bt)*
     def B(self):
-        # print('inside b block')
         self.Bt()
         while self.token_list[0].get_value()=='or':
             self.token_list.pop(0)
@@ -244,7 +229,6 @@ class Parser:
 #convert as follow
 #   Bt   -> Bs ('&' Bs)*
     def Bt(self):
-        # print('inside bt block')
         self.Bs()
         while self.token_list[0].get_value()=='&':
             self.token_list.pop(0)
@@ -254,9 +238,7 @@ class Parser:
 #   Bs  -> ’not’ Bp     => ’not’
 #       -> Bp
     def Bs(self):
-        # print('inside bs block')
         if self.token_list[0].get_value()=='not':
-            # print('inside not')
             self.token_list.pop(0)
             self.Bp()
             self.ast.append(Node(NodeType.NOT,'not',1))
@@ -523,28 +505,7 @@ class Parser:
         else:
             print('error inside Db')
 
-            # if self.token_list[1].get_type()==IDENTIFIER or self.token_list[1].get_value()=='(':
-            #     self.ast.append(Node(NodeType.IDENTIFIER,self.token_list[0].get_value(),0)) 
-            #     self.token_list.pop(0) # pop identifier
-            #     n=0
-            #     while self.token_list[0].get_type()==IDENTIFIER or self.token_list[0].get_value()=='(':
-            #         n+=1
-            #         self.Vb()
-            #     if self.token_list[0].get_value()!='=':
-            #         print('error inside Db block, expected = but got',self.token_list[0].get_value())
-            #         return
-            #     self.token_list.pop(0) # pop =
-            #     self.E()
-            #     self.ast.append(Node(NodeType.FCN_FORM,'fcn_form',n+2))
-            # Db -> Vl = E
-            # else:
-            #     self.Vl()
-            #     if self.token_list[0].get_value()!='=':
-            #         print('error inside Db block, expected = but got',self.token_list[0].get_value())
-            #         return
-            #     self.token_list.pop(0)
-            #     self.E()
-            #     self.ast.append(Node(NodeType.EQUAL,'=',2))
+
 
 # Vb    -> ’<IDENTIFIER>’
 #       -> ’(’ Vl ’)’

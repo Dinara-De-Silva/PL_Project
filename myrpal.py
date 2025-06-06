@@ -28,7 +28,7 @@ def main():
             return
         
         # Abstract Syntax Tree 
-        string_ast = parser.convert_ast_to_string_ast()
+        string_ast = parser.print_ast()
         if args.ast:
             for string in string_ast:
                 print(string)
