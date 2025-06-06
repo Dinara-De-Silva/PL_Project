@@ -4,53 +4,58 @@ class CSEMachine:
     def __init__(self, control, stack, environment):
         self.control = control
         self.stack = stack
-        self.environment = environment
-
-    
+        self.environments = environment
 
     def execute(self):
-        # Execute the CSEMachine
-        current_environment = self.environment[0]
-        j = 1
+        """Main execution loop of the CSE machine."""
+        current_env = self.environments[0]
+        new_env_index = 1
+
         while self.control:
-            current_symbol = self.control.pop()
-            if isinstance(current_symbol, Id):
-                self.stack.insert(0, current_environment.lookup(current_symbol))
-                # print(current_environment.lookup(current_symbol).get_data())
-            elif isinstance(current_symbol, Lambda):
-                current_symbol.set_environment(current_environment.get_index())
-                self.stack.insert(0, current_symbol)
-                
-                
-            elif isinstance(current_symbol, Gamma):
+            symbol = self.control.pop()
+
+            # Identifier: push value from current environment
+            if isinstance(symbol, Id):
+                self.stack.insert(0, current_env.lookup(symbol))
+
+            # Lambda: push Lambda and set its environment index
+            elif isinstance(symbol, Lambda):
+                symbol.set_environment(current_env.get_index())
+                self.stack.insert(0, symbol)
+
+            # Gamma application: apply to Lambda, Tup, Ystar, Eta, or built-in function
+            elif isinstance(symbol, Gamma):
                 next_symbol = self.stack.pop(0)
                 if isinstance(next_symbol, Lambda):
-                    # Handle Lambda expression
+                    
                     lambda_expr = next_symbol
-                    e = E(j)
-                    j += 1
+                    new_env = E(new_env_index)
+                    new_env_index += 1
+                    
                     if len(lambda_expr.identifiers) == 1:
-                        temp = self.stack.pop(0)
-                        e.values[lambda_expr.identifiers[0]] = temp
+                        arg = self.stack.pop(0)
+                        new_env.values[lambda_expr.identifiers[0]] = arg
                     else:
                         tup = self.stack.pop(0)
-                        for i, id in enumerate(lambda_expr.identifiers):
-                            e.values[id] = tup.symbols[i]
-                    for env in self.environment:
+                        for i, ident in enumerate(lambda_expr.identifiers):
+                            new_env.values[ident] = tup.symbols[i]
+                    
+                    for env in self.environments:
                         if env.get_index() == lambda_expr.get_environment():
-                            e.set_parent(env)
-                    current_environment = e
-                    self.control.append(e)
+                            new_env.set_parent(env)
+                    current_env = new_env
+                    self.control.append(new_env)
                     self.control.append(lambda_expr.get_delta())
-                    self.stack.insert(0, e)
-                    self.environment.append(e)
+                    self.stack.insert(0, new_env)
+                    self.environments.append(new_env)
+
                 elif isinstance(next_symbol, Tup):
-                    # Handle Tup expression
-                    tup = next_symbol
-                    i = int(self.stack.pop(0).get_data())
-                    self.stack.insert(0, tup.symbols[i - 1])
+                    # Tuple projection
+                    index = int(self.stack.pop(0).get_data())
+                    self.stack.insert(0, next_symbol.symbols[index - 1])
+
                 elif isinstance(next_symbol, Ystar):
-                    # Handle Ystar expression
+                    # Y* (recursive function)
                     lambda_expr = self.stack.pop(0)
                     eta = Eta()
                     eta.set_index(lambda_expr.get_index())
@@ -58,239 +63,155 @@ class CSEMachine:
                     eta.set_identifier(lambda_expr.identifiers[0])
                     eta.set_lambda(lambda_expr)
                     self.stack.insert(0, eta)
+
                 elif isinstance(next_symbol, Eta):
-                    # Handle Eta expression
+                    # Eta reduction
                     eta = next_symbol
                     lambda_expr = eta.get_lambda()
-                    self.control.append(Gamma())
-                    self.control.append(Gamma())
+                    self.control.extend([Gamma(), Gamma()])
                     self.stack.insert(0, eta)
                     self.stack.insert(0, lambda_expr)
-                else:
-                    # Handle other symbols
-                    if next_symbol.get_data() == "Print":
-                        pass
-                    elif next_symbol.get_data() == "Stem":
-                        # implement Stem function
-                        s = self.stack.pop(0)
-                        x = Str(s.get_data()[0])
-                        self.stack.insert(0,x)
-                    elif next_symbol.get_data() == "Stern":
-                        # implement Stern function
-                        s = self.stack.pop(0)
-                        y = Str(s.get_data()[1:])
-                        # s.set_data(s.get_data()[1:])
-                        self.stack.insert(0, y)
-                    elif next_symbol.get_data() == "Conc":
-                        # implement Conc function
-                        s1 = self.stack.pop(0)
-                        s2 = self.stack.pop(0)
-                        self.control.pop()
-                        z = Str(s1.get_data() + s2.get_data())
-                        
-                        self.stack.insert(0, z)
-                    elif next_symbol.get_data() == "Order":
-                        # implement Order function
-                        tup = self.stack.pop(0)
-                        n = Int(str(len(tup.symbols)))
-                        self.stack.insert(0, n)
-                    elif next_symbol.get_data() == "Isinteger":
-                        # implement Isinteger function
-                        if isinstance(self.stack[0], Int):
-                            self.stack.insert(0, Bool("true"))
-                        else:
-                            self.stack.insert(0, Bool("false"))
-                        self.stack.pop(1)
-                    elif next_symbol.get_data() == "Null":
-                        # implement Null function
-                        pass
-                    elif next_symbol.get_data() == "Itos":
-                        # implement Itos function
-                        pass
-                    elif next_symbol.get_data() == "Isstring":
-                        # implement Isstring function
-                        if isinstance(self.stack[0], Str):
-                            self.stack.insert(0, Bool("true"))
-                        else:
-                            self.stack.insert(0, Bool("false"))
-                        self.stack.pop(1)
-                    elif next_symbol.get_data() == "Istuple":
-                        # implement Istuple function
-                        if isinstance(self.stack[0], Tup):
-                            self.stack.insert(0, Bool("true"))
-                        else:
-                            self.stack.insert(0, Bool("false"))
-                        self.stack.pop(1)
-                    elif next_symbol.get_data() == "Isdummy":
-                        # implement Isdummy function
-                        if isinstance(self.stack[0], Dummy):
-                            self.stack.insert(0, Bool("true"))
-                        else:
-                            self.stack.insert(0, Bool("false"))
-                        self.stack.pop(1)
-                    elif next_symbol.get_data() == "Istruthvalue":
-                        # implement Istruthvalue function
-                        if isinstance(self.stack[0], Bool):
-                            self.stack.insert(0, Bool("true"))
-                        else:
-                            self.stack.insert(0, Bool("false"))
-                        self.stack.pop(1)
-                    elif next_symbol.get_data() == "Isfunction":
-                        # implement Isfunction function
-                        if isinstance(self.stack[0], Lambda):
-                            self.stack.insert(0, Bool("true"))
-                        else:
-                            self.stack.insert(0, Bool("false"))
-                        self.stack.pop(1)
 
-            elif isinstance(current_symbol, E):
-                # Handle E expression
+                else:
+                    # Built-in functions
+                    self.handle_builtin(next_symbol)
+
+            # End of environment 
+            elif isinstance(symbol, E):
                 self.stack.pop(1)
-                self.environment[current_symbol.get_index()].set_is_removed(True)
-                y = len(self.environment)
-                while y > 0:
-                    if not self.environment[y - 1].get_is_removed():
-                        current_environment = self.environment[y - 1]
-                        break
-                    else:
-                        y -= 1
-            elif isinstance(current_symbol, Rator):
-                if isinstance(current_symbol, Uop):
-                    # Handle Unary operation
-                    rator = current_symbol
-                    rand = self.stack.pop(0)
-                    self.stack.insert(0, self.apply_unary_operation(rator, rand))
-                if isinstance(current_symbol, Bop):
-                    # Handle Binary operation
-                    rator = current_symbol
-                    rand1 = self.stack.pop(0)
-                    rand2 = self.stack.pop(0)
-                    self.stack.insert(0, self.apply_binary_operation(rator, rand1, rand2))
-            elif isinstance(current_symbol, Beta):
-                # Handle Beta expression
-                # print(self.stack[0].get_data())
-                # self.print_control()
-                # self.print_stack()
-                # # self.control.pop(-2)
-                # self.print_control()
-                if (self.stack[0].get_data() == "true"):
-                    self.control.pop()
-                else:
-                    self.control.pop(-2)
-                self.stack.pop(0)
-                
-                
-                
-            elif isinstance(current_symbol, Tau):
-                # Handle Tau expression
-                tau = current_symbol
-                tup = Tup()
-                for _ in range(tau.get_n()):
-                    tup.symbols.append(self.stack.pop(0))
-                self.stack.insert(0, tup)
-            elif isinstance(current_symbol, Delta):
-                # Handle Delta expression
-                self.control.extend(current_symbol.symbols)
-            elif isinstance(current_symbol, B):
-                # Handle B expression
-                self.control.extend(current_symbol.symbols)
-            else:
-                self.stack.insert(0, current_symbol)
+                self.environments[symbol.get_index()].set_is_removed(True)
                
-    def covert_string_to_bool(self, data):
-        if data == "true":
-            return True
-        elif data == "false":
-            return False
+                for env in reversed(self.environments):
+                    if not env.get_is_removed():
+                        current_env = env
+                        break
 
-    def apply_unary_operation(self, rator, rand):
-        # Apply unary operation
+            # Rator: unary or binary operation
+            elif isinstance(symbol, Rator):
+                if isinstance(symbol, Uop):
+                    operand = self.stack.pop(0)
+                    self.stack.insert(0, self.apply_unary(symbol, operand))
+                elif isinstance(symbol, Bop):
+                    operand1 = self.stack.pop(0)
+                    operand2 = self.stack.pop(0)
+                    self.stack.insert(0, self.apply_binary(symbol, operand1, operand2))
+
+            # Conditional (Beta)
+            elif isinstance(symbol, Beta):
+                condition = self.stack.pop(0).get_data()
+                if condition == "true":
+                    self.control.pop()  # Remove false branch
+                else:
+                    self.control.pop(-2)  # Remove true branch
+
+            # Tau: build tuple
+            elif isinstance(symbol, Tau):
+                new_tuple = Tup()
+                for _ in range(symbol.get_n()):
+                    new_tuple.symbols.append(self.stack.pop(0))
+                self.stack.insert(0, new_tuple)
+
+            # Delta/B: push symbols of block
+            elif isinstance(symbol, (Delta, B)):
+                self.control.extend(symbol.symbols)
+
+            else:
+                # Push constants or other values
+                self.stack.insert(0, symbol)
+
+    def handle_builtin(self, func_symbol):
+        """Handle built-in function applications."""
+        func_name = func_symbol.get_data()
+        if func_name == "Stem":
+            s = self.stack.pop(0).get_data()[0]
+            self.stack.insert(0, Str(s))
+        elif func_name == "Stern":
+            s = self.stack.pop(0).get_data()[1:]
+            self.stack.insert(0, Str(s))
+        elif func_name == "Conc":
+            s1 = self.stack.pop(0).get_data()
+            s2 = self.stack.pop(0).get_data()
+            self.control.pop()  
+            self.stack.insert(0, Str(s1 + s2))
+        elif func_name == "Order":
+            tup = self.stack.pop(0)
+            self.stack.insert(0, Int(str(len(tup.symbols))))
+        elif func_name == "Isinteger":
+            result = isinstance(self.stack[0], Int)
+            self.stack[0] = Bool(str(result).lower())
+        elif func_name == "Isstring":
+            result = isinstance(self.stack[0], Str)
+            self.stack[0] = Bool(str(result).lower())
+        elif func_name == "Istuple":
+            result = isinstance(self.stack[0], Tup)
+            self.stack[0] = Bool(str(result).lower())
+        elif func_name == "Isdummy":
+            result = isinstance(self.stack[0], Dummy)
+            self.stack[0] = Bool(str(result).lower())
+        elif func_name == "Istruthvalue":
+            result = isinstance(self.stack[0], Bool)
+            self.stack[0] = Bool(str(result).lower())
+        elif func_name == "Isfunction":
+            result = isinstance(self.stack[0], Lambda)
+            self.stack[0] = Bool(str(result).lower())
+        # TODO: Implement Null and Itos if needed
+
+    def apply_unary(self, rator, operand):
+        """Apply unary operators: neg, not."""
         if rator.get_data() == "neg":
-            val = int(rand.get_data())
-            return Int(str(-1 * val))
+            return Int(str(-int(operand.get_data())))
         elif rator.get_data() == "not":
-            val = self.covert_string_to_bool(rand.get_data())
+            val = operand.get_data() == "true"
             return Bool(str(not val).lower())
         else:
             return Err()
 
-    def apply_binary_operation(self, rator, rand1, rand2):
-        # Apply binary operation
-        if rator.get_data() == "+":
-            val1 = int(rand1.get_data())
-            val2 = int(rand2.get_data())
-            return Int(str(val1 + val2))
-        elif rator.data == "-":
-            val1 = int(rand1.data)
-            val2 = int(rand2.data)
-            return Int(str(val1 - val2))
-        elif rator.data == "*":
-            val1 = int(rand1.data)
-            val2 = int(rand2.data)
-            return Int(str(val1 * val2))
-        elif rator.data == "/":
-            val1 = int(rand1.data)
-            val2 = int(rand2.data)
-            return Int(str(int(val1 / val2)))
-        elif rator.data == "**":
-            val1 = int(rand1.data)
-            val2 = int(rand2.data)
-            return Int(str(val1 ** val2))
-        elif rator.data == "&":
-            val1 = self.covert_string_to_bool(rand1.data)
-            val2 = self.covert_string_to_bool(rand2.data)
-            return Bool(str(val1 and val2).lower())
-        elif rator.data == "or":
-            val1 = self.covert_string_to_bool(rand1.data)
-            val2 = self.covert_string_to_bool(rand2.data)
-            return Bool(str(val1 or val2).lower())
-        elif rator.data == "eq":
-            val1 = rand1.data
-            val2 = rand2.data
-            return Bool(str(val1 == val2).lower())
-        elif rator.data == "ne":
-            val1 = rand1.data
-            val2 = rand2.data
-            return Bool(str(val1 != val2).lower())
-        elif rator.data == "ls":
-            val1 = int(rand1.data)
-            val2 = int(rand2.data)
-            return Bool(str(val1 < val2).lower())
-        elif rator.data == "le":
-            val1 = int(rand1.data)
-            val2 = int(rand2.data)
-            return Bool(str(val1 <= val2).lower())
-        elif rator.data == "gr":
-            val1 = int(rand1.data)
-            val2 = int(rand2.data)
-            return Bool(str(val1 > val2).lower())
-        elif rator.data == "ge":
-            val1 = int(rand1.data)
-            val2 = int(rand2.data)
-            return Bool(str(val1 >= val2).lower())
-        elif rator.data == "aug":
-            if isinstance(rand2, Tup):
-                rand1.symbols.extend(rand2.symbols)
+    def apply_binary(self, rator, operand1, operand2):
+        """Apply binary operators: arithmetic, boolean, comparison, etc."""
+        data = rator.get_data()
+        if data in {"+", "-", "*", "/", "**"}:
+            v1, v2 = int(operand1.get_data()), int(operand2.get_data())
+            if data == "+": return Int(str(v1 + v2))
+            if data == "-": return Int(str(v1 - v2))
+            if data == "*": return Int(str(v1 * v2))
+            if data == "/": return Int(str(v1 // v2))
+            if data == "**": return Int(str(v1 ** v2))
+        elif data in {"&", "or"}:
+            v1 = operand1.get_data() == "true"
+            v2 = operand2.get_data() == "true"
+            if data == "&": return Bool(str(v1 and v2).lower())
+            if data == "or": return Bool(str(v1 or v2).lower())
+        elif data in {"eq", "ne", "ls", "le", "gr", "ge"}:
+            v1, v2 = operand1.get_data(), operand2.get_data()
+            if data == "eq": return Bool(str(v1 == v2).lower())
+            if data == "ne": return Bool(str(v1 != v2).lower())
+            v1, v2 = int(v1), int(v2)
+            if data == "ls": return Bool(str(v1 < v2).lower())
+            if data == "le": return Bool(str(v1 <= v2).lower())
+            if data == "gr": return Bool(str(v1 > v2).lower())
+            if data == "ge": return Bool(str(v1 >= v2).lower())
+        elif data == "aug":
+            if isinstance(operand2, Tup):
+                operand1.symbols.extend(operand2.symbols)
             else:
-                rand1.symbols.append(rand2)
-            return rand1
-        else:
-            return Err()
+                operand1.symbols.append(operand2)
+            return operand1
+        return Err()
 
-    def get_tuple_value(self, tup):
-        # Get the value of a tuple
-        temp = "("
-        for symbol in tup.symbols:
-            if isinstance(symbol, Tup):
-                temp += self.get_tuple_value(symbol) + ", "
+    def tuple_to_string(self, tup):
+        """Recursively convert a tuple to a string representation."""
+        items = []
+        for item in tup.symbols:
+            if isinstance(item, Tup):
+                items.append(self.tuple_to_string(item))
             else:
-                temp += symbol.get_data() + ", "
-        temp = temp[:-2] + ")"
-        return temp
+                items.append(item.get_data())
+        return f"({', '.join(items)})"
 
     def get_result(self):
-        # Get the answer from the CSEMachine
+        """Run the CSE machine and return the final result as a string."""
         self.execute()
-        if isinstance(self.stack[0], Tup):
-            return self.get_tuple_value(self.stack[0])
-        return self.stack[0].get_data()
+        top = self.stack[0]
+        if isinstance(top, Tup):
+            return self.tuple_to_string(top)
+        return top.get_data()

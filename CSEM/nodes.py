@@ -1,3 +1,4 @@
+# Classes are defined to represent different types of symbols used in the CSEM. 
 class Symbol:
     def __init__(self, data):
         self.data = data
