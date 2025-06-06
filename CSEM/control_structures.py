@@ -9,7 +9,7 @@ class ControlStructures:
     def __init__(self):
         self.env0 = E(0)    
         self.lambda_index = 1  # Counter to track lambda symbols
-        self.delta_index = 0   # Counter to track identifying delta expressions
+        self.delta_index = 0   # Counter to track delta expressions
 
     def map_ast_node_to_symbol(self, node):
         data = node.get_data()
