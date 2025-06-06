@@ -1,4 +1,4 @@
-from .nodes import *
+from .symbols import *
 
 class CSEMachine:
     def __init__(self, control, stack, environment):

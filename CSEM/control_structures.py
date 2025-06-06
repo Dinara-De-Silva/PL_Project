@@ -1,4 +1,4 @@
-from .nodes import *
+from .symbols import *
 from .csemachine import CSEMachine
 
 class ControlStructures:

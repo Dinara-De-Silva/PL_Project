@@ -180,13 +180,11 @@ class ASTNode:
         x1, e1 = self.children[0].children
         x2, e2 = self.children[1].children
         
-        # Create gamma and lambda nodes
         gamma = NodeFactory.create_node_with_parent(
             "gamma", self.depth + 1, self, [], True)
         lambda_node = NodeFactory.create_node_with_parent(
             "lambda", self.depth + 2, gamma, [], True)
         
-        # Update parent and depth references
         x1.set_depth(x1.get_depth() + 1)
         x1.set_parent(lambda_node)
         x2.set_depth(x1.get_depth() - 1)
@@ -196,7 +194,6 @@ class ASTNode:
         e2.set_depth(e2.get_depth() + 1)
         e2.set_parent(lambda_node)
         
-        # Rebuild the tree structure
         lambda_node.children.extend([x1, e2])
         gamma.children.extend([lambda_node, e1])
         self.children = [x2, gamma]

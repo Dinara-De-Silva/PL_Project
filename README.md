@@ -34,13 +34,13 @@ It consists of the following core components:
 ├── Parser                       # Parses tokens to build the Abstract Syntax Tree (AST)  
 │   └── parser.py  
 ├── Standardizer                 # Converts AST into a Standardized Tree (ST)  
-│   ├── ast_builder.py  
-│   ├── ast.py  
-│   └── node.py  
+│   ├── ast_builder.py           
+│   ├── ast.py                   
+│   └── node.py                  
 ├── CSEM                         # Implements the Control Stack Environment (CSE) machine to evaluate the ST  
-│   ├── control_structure.py  
-│   ├── csemachine.py  
-│   └── nodes.py  
+│   ├── control_structure.py     
+│   ├── csemachine.py            
+│   └── symbols.py                 
 ├── myrpal.py                    # Main entry point; processes arguments and orchestrates execution  
 
 
